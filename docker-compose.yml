@@ -1,0 +1,61 @@
+name: atlasai-morocco
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: atlasai
+      POSTGRES_PASSWORD: atlasai
+      POSTGRES_DB: atlasai
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Runs once, only when the volume is empty.
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/10-init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atlasai -d atlasai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./backend
+    environment:
+      ATLASAI_DATABASE_URL: postgresql+psycopg://atlasai:atlasai@db:5432/atlasai
+      ATLASAI_CORS_ORIGINS: ${ATLASAI_CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      ATLASAI_LOG_LEVEL: INFO
+      ATLASAI_STAC_URL: ${ATLASAI_STAC_URL:-https://planetarycomputer.microsoft.com/api/stac/v1}
+      ATLASAI_MAX_PIXELS: ${ATLASAI_MAX_PIXELS:-4000000}
+      ATLASAI_CACHE_TTL_SECONDS: ${ATLASAI_CACHE_TTL_SECONDS:-86400}
+      # Both optional. The free Planetary Computer key lifts the anonymous rate
+      # limit; the Anthropic key switches the assistant from keyword routing to
+      # Claude-based planning.
+      ATLASAI_PC_SUBSCRIPTION_KEY: ${ATLASAI_PC_SUBSCRIPTION_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        # This value is baked into the client bundle, so it must be the URL the
+        # BROWSER can reach — not the compose-network hostname. `http://api:8000`
+        # resolves inside the network and nowhere else, so a browser would fail
+        # every request. Override for a real deployment (e.g. https://api.example.com).
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+    environment:
+      NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  pgdata:

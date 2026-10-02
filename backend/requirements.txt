@@ -1,0 +1,29 @@
+# --- Web / API ---------------------------------------------------------------
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.0
+httpx==0.28.1
+
+# --- Earth Observation / geospatial -----------------------------------------
+pystac-client==0.8.5
+planetary-computer==1.0.0
+rasterio==1.4.3
+shapely==2.0.6
+numpy==2.2.1
+Pillow==11.1.0
+
+# --- Persistence (optional: the API runs without a database) -----------------
+SQLAlchemy==2.0.36
+psycopg[binary]==3.2.3
+GeoAlchemy2==0.16.0
+
+# --- AI (optional: LLM planning assistant) -----------------------------------
+google-genai>=1.0.0
+
+# --- AI (optional: deep-learning backends for the segmentation modules) ------
+# Installed separately via requirements-ai.txt to keep the base image small.
+
+# --- Dev ---------------------------------------------------------------------
+pytest==8.3.4
+pytest-asyncio==0.25.0

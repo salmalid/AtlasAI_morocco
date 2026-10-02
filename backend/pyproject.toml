@@ -1,0 +1,24 @@
+[project]
+name = "atlasai-morocco"
+version = "0.1.0"
+description = "AI-powered Earth observation platform for Morocco"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-m 'not live'"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    "ignore::DeprecationWarning:pydantic._internal._config",
+]
+markers = [
+    "live: hits the Planetary Computer archive over the network (deselect with '-m \"not live\"')",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]  # long lines are usually prose in docstrings
